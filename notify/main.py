@@ -1,0 +1,44 @@
+import keyring
+import requests
+import typer
+from decouple import config
+from keyring.errors import NoKeyringError
+from scrapers.scrape import scrape_scorp
+from typing_extensions import Annotated
+
+app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
+
+try:
+    topic = keyring.get_password("ntfy", "topic")
+except NoKeyringError:
+    topic = config("TOPIC")
+
+url = f"https://ntfy.sh/{topic}"
+
+
+@app.command()
+def publish(
+    message: Annotated[str, typer.Argument()],
+    priority: Annotated[int, typer.Option(min=1, max=5)] = 1,
+):
+    """
+    **Publish** a manually entered message
+    """
+
+    requests.post(
+        url,
+        data=message.encode(encoding="utf-8"),
+        headers={
+            "Priority": str(priority),
+            "Tags": "snake",
+        },
+    )
+
+
+@app.command()
+def run():
+    publish(scrape_scorp())
+
+
+if __name__ == "__main__":
+    app()
