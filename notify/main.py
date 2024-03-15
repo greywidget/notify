@@ -1,10 +1,14 @@
+from time import sleep
+
 import keyring
 import requests
 import typer
 from decouple import config
 from keyring.errors import NoKeyringError
-from scrapers.scrape import scrape_scorp
+from scrapers.scrape import scrape_amazon_ebook, scrape_scorp
 from typing_extensions import Annotated
+
+HALF_AN_HOUR = 30 * 60
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
 
@@ -37,7 +41,10 @@ def publish(
 
 @app.command()
 def run():
-    publish(scrape_scorp())
+    while True:
+        publish(scrape_amazon_ebook())
+        publish(scrape_scorp())
+        sleep(HALF_AN_HOUR)
 
 
 if __name__ == "__main__":

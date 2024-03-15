@@ -11,6 +11,8 @@ colorama==0.4.6
     # via
     #   click
     #   typer
+greenlet==3.0.3
+    # via playwright
 idna==3.6
     # via requests
 jaraco-classes==3.3.1
@@ -22,6 +24,9 @@ mdurl==0.1.2
     # via markdown-it-py
 more-itertools==10.2.0
     # via jaraco-classes
+playwright==1.42.0
+pyee==11.0.1
+    # via playwright
 pygments==2.17.2
     # via rich
 python-decouple==3.8
@@ -36,6 +41,8 @@ soupsieve==2.5
     # via beautifulsoup4
 typer==0.9.0
 typing-extensions==4.10.0
-    # via typer
+    # via
+    #   pyee
+    #   typer
 urllib3==2.2.1
     # via requests

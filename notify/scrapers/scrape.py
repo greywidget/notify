@@ -1,11 +1,12 @@
-import bs4
 import requests
+from bs4 import BeautifulSoup
+from playwright.sync_api import Playwright, sync_playwright
 
 
 def scrape_scorp():
     url = "https://stoffercraft.com/products/spoon-scorp"
     resp = requests.get(url)
-    soup = bs4.BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(resp.text, "html.parser")
     form = soup.find("form", action="/cart/add")
     option = form.find("option")
     status = "Sold Out" if "disabled" in option.attrs.keys() else "Available"
@@ -16,10 +17,38 @@ def scrape_scorp():
 def scrape_paper():
     url = "https://stoffercraft.com/products/honing-paper"
     resp = requests.get(url)
-    soup = bs4.BeautifulSoup(resp.text, "html.parser")
+    soup = BeautifulSoup(resp.text, "html.parser")
     form = soup.find("form", action="/cart/add")
     options = form.find_all("option")
     option = options[0]
     status = "Sold Out" if "disabled" in option.attrs.keys() else "Available"
     price = form.find("span", id="productPrice").text
     return f"Honing Paper: {price}. {status}"
+
+
+def run(playwright: Playwright):
+    chromium = playwright.chromium
+    browser = chromium.launch()
+    page = browser.new_page()
+    page.goto(
+        "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
+    )
+
+    data = page.content()
+    soup = BeautifulSoup(data, "html.parser")
+
+    a_string = soup.find(string=" Available instantly ")
+    price = (
+        a_string.find_parent()
+        .parent.parent.parent.find("span", class_="a-color-price")
+        .text.strip()
+    )
+
+    return f"Richard Osmond ebook, The Last Devil to Die: {price}."
+
+
+def scrape_amazon_ebook():
+    with sync_playwright() as playwight:
+        message = run(playwight)
+
+    return message
