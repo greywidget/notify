@@ -51,7 +51,7 @@ def run():
                 publish(message)
 
         if (today := date.today()) > last_heartbeat:
-            publish(HEARTBEAT)
+            publish(f"{HEARTBEAT} {today}")
             last_heartbeat = today
 
         sleep(HALF_AN_HOUR)
