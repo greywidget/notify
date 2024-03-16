@@ -44,7 +44,6 @@ def publish(
 
 @app.command()
 def run():
-    breakpoint()
     last_heartbeat = date.today() - timedelta(days=1)
     while True:
         for scraper in scrapers:
