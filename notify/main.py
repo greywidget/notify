@@ -11,6 +11,7 @@ from typing_extensions import Annotated
 HALF_AN_HOUR = 30 * 60
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
+scrapers = [scrape_scorp, scrape_amazon_ebook]
 
 try:
     topic = keyring.get_password("ntfy", "topic")
@@ -42,9 +43,11 @@ def publish(
 @app.command()
 def run():
     while True:
-        publish(scrape_amazon_ebook())
-        publish(scrape_scorp())
-        sleep(HALF_AN_HOUR)
+        for scraper in scrapers:
+            if message := scraper():
+                publish(message)
+        break
+        # sleep(HALF_AN_HOUR)
 
 
 if __name__ == "__main__":

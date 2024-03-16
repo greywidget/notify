@@ -1,6 +1,12 @@
+from decimal import Decimal
+
 import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import Playwright, sync_playwright
+
+EBOOK_MAX = Decimal("11.99")
+AVAILABLE = "Available"
+SOLD_OUT = "Sold Out"
 
 
 def scrape_scorp():
@@ -9,7 +15,10 @@ def scrape_scorp():
     soup = BeautifulSoup(resp.text, "html.parser")
     form = soup.find("form", action="/cart/add")
     option = form.find("option")
-    status = "Sold Out" if "disabled" in option.attrs.keys() else "Available"
+    status = SOLD_OUT if "disabled" in option.attrs.keys() else AVAILABLE
+    if status == SOLD_OUT:
+        return
+
     price = form.find("span", id="productPrice").text
     return f"OG Scorp: {price}. {status}"
 
@@ -21,7 +30,10 @@ def scrape_paper():
     form = soup.find("form", action="/cart/add")
     options = form.find_all("option")
     option = options[0]
-    status = "Sold Out" if "disabled" in option.attrs.keys() else "Available"
+    status = SOLD_OUT if "disabled" in option.attrs.keys() else AVAILABLE
+    if status == SOLD_OUT:
+        return
+
     price = form.find("span", id="productPrice").text
     return f"Honing Paper: {price}. {status}"
 
@@ -44,7 +56,8 @@ def run(playwright: Playwright):
         .text.strip()
     )
 
-    return f"Richard Osmond ebook, The Last Devil to Die: {price}."
+    if Decimal(price.replace("£", "")) < EBOOK_MAX:
+        return f"Richard Osmond ebook, The Last Devil to Die - Price Drop! {price} (down from £{EBOOK_MAX})"
 
 
 def scrape_amazon_ebook():
