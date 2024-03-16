@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from time import sleep
 
 import keyring
@@ -9,6 +10,7 @@ from scrapers.scrape import scrape_amazon_ebook, scrape_scorp
 from typing_extensions import Annotated
 
 HALF_AN_HOUR = 30 * 60
+HEARTBEAT = "Notify App still up and running"
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
 scrapers = [scrape_scorp, scrape_amazon_ebook]
@@ -42,12 +44,18 @@ def publish(
 
 @app.command()
 def run():
+    breakpoint()
+    last_heartbeat = date.today() - timedelta(days=1)
     while True:
         for scraper in scrapers:
             if message := scraper():
                 publish(message)
-        break
-        # sleep(HALF_AN_HOUR)
+
+        if (today := date.today()) > last_heartbeat:
+            publish(HEARTBEAT)
+            last_heartbeat = today
+
+        sleep(HALF_AN_HOUR)
 
 
 if __name__ == "__main__":

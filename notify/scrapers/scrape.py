@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import requests
 from bs4 import BeautifulSoup
-from playwright.sync_api import Playwright, sync_playwright
+from playwright.sync_api import sync_playwright
 
 EBOOK_MAX = Decimal("11.99")
 AVAILABLE = "Available"
@@ -38,15 +38,16 @@ def scrape_paper():
     return f"Honing Paper: {price}. {status}"
 
 
-def run(playwright: Playwright):
-    chromium = playwright.chromium
-    browser = chromium.launch()
-    page = browser.new_page()
-    page.goto(
-        "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
-    )
+def scrape_amazon_ebook():
+    with sync_playwright() as playwright:
+        chromium = playwright.chromium
+        browser = chromium.launch()
+        page = browser.new_page()
+        page.goto(
+            "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
+        )
+        data = page.content()
 
-    data = page.content()
     soup = BeautifulSoup(data, "html.parser")
 
     a_string = soup.find(string=" Available instantly ")
@@ -58,10 +59,3 @@ def run(playwright: Playwright):
 
     if Decimal(price.replace("£", "")) < EBOOK_MAX:
         return f"Richard Osmond ebook, The Last Devil to Die - Price Drop! {price} (down from £{EBOOK_MAX})"
-
-
-def scrape_amazon_ebook():
-    with sync_playwright() as playwight:
-        message = run(playwight)
-
-    return message
