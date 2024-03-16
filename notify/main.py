@@ -26,7 +26,7 @@ url = f"https://ntfy.sh/{topic}"
 @app.command()
 def publish(
     message: Annotated[str, typer.Argument()],
-    priority: Annotated[int, typer.Option(min=1, max=5)] = 1,
+    priority: Annotated[int, typer.Option(min=1, max=5)] = 5,
 ):
     """
     **Publish** a manually entered message
@@ -51,7 +51,7 @@ def run():
                 publish(message)
 
         if (today := date.today()) > last_heartbeat:
-            publish(f"{HEARTBEAT} {today}")
+            publish(f"{HEARTBEAT} {today}", priority=1)
             last_heartbeat = today
 
         sleep(HALF_AN_HOUR)
