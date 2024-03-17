@@ -9,11 +9,12 @@ from keyring.errors import NoKeyringError
 from scrapers.scrape import scrape_amazon_ebook, scrape_scorp
 from typing_extensions import Annotated
 
+DEFAULT_TAG = "snake"
 HALF_AN_HOUR = 30 * 60
-HEARTBEAT = "Notify App still up and running"
+HEARTBEAT = "white_check_mark"
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
-scrapers = [scrape_scorp, scrape_amazon_ebook]
+scrapers = [(scrape_scorp, "hocho"), (scrape_amazon_ebook, "book")]
 
 try:
     topic = keyring.get_password("ntfy", "topic")
@@ -27,6 +28,7 @@ url = f"https://ntfy.sh/{topic}"
 def publish(
     message: Annotated[str, typer.Argument()],
     priority: Annotated[int, typer.Option(min=1, max=5)] = 5,
+    tag: Annotated[str, typer.Option()] = DEFAULT_TAG,
 ):
     """
     **Publish** a manually entered message
@@ -37,21 +39,24 @@ def publish(
         data=message.encode(encoding="utf-8"),
         headers={
             "Priority": str(priority),
-            "Tags": "snake",
+            "Tags": tag,
         },
     )
 
 
 @app.command()
 def run():
+    """
+    **Loop** through event checks
+    """
     last_heartbeat = date.today() - timedelta(days=1)
     while True:
-        for scraper in scrapers:
+        for scraper, tag in scrapers:
             if message := scraper():
-                publish(message)
+                publish(message, tag=tag)
 
         if (today := date.today()) > last_heartbeat:
-            publish(f"{HEARTBEAT} {today}", priority=1)
+            publish(f"{today}", priority=1, tag=HEARTBEAT)
             last_heartbeat = today
 
         sleep(HALF_AN_HOUR)
