@@ -58,6 +58,7 @@ def run():
         if (today := date.today()) > last_heartbeat:
             publish(f"{today}", priority=1, tag=HEARTBEAT)
             last_heartbeat = today
+        break
 
         sleep(HALF_AN_HOUR)
 

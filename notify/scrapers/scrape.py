@@ -2,11 +2,11 @@ from decimal import Decimal
 
 import requests
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
 
 EBOOK_MAX = Decimal("11.99")
 AVAILABLE = "Available"
 SOLD_OUT = "Sold Out"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
 
 def scrape_scorp():
@@ -39,14 +39,9 @@ def scrape_paper():
 
 
 def scrape_amazon_ebook():
-    with sync_playwright() as playwright:
-        chromium = playwright.chromium
-        browser = chromium.launch()
-        page = browser.new_page()
-        page.goto(
-            "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
-        )
-        data = page.content()
+    url = "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
+    resp = requests.get(url, headers={"User-Agent": USER_AGENT})
+    data = resp.text
 
     soup = BeautifulSoup(data, "html.parser")
 
