@@ -83,7 +83,7 @@ def run():
                 if message := scraper():
                     publish(message, tag=tag)
 
-                log.info(f" {scraper.__name__} | {tag}")
+                log.info(f" {segment} | {scraper.__name__} | {tag}")
 
         if (today := date.today()) > last_heartbeat:
             publish(f"{today}", priority=1, tag=HEARTBEAT)
