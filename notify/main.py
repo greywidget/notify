@@ -14,7 +14,7 @@ from schedule.intervals import (
     EVERY_FIFTEEN_MINUTES,
     NINETY_SIX,
 )
-from scrapers.scrape import scrape_amazon_ebook, scrape_scorp
+from scrapers.scrape import scrape_scorp
 from typing_extensions import Annotated
 
 DEFAULT_TAG = "snake"
@@ -32,7 +32,9 @@ logging.basicConfig(
 segments = itertools.cycle(NINETY_SIX)
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
-scrapers = [(scrape_scorp, "hocho"), (scrape_amazon_ebook, "book")]
+scrapers = [
+    (scrape_scorp, "hocho"),
+]
 
 try:
     topic = keyring.get_password("ntfy", "topic")
