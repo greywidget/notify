@@ -19,7 +19,6 @@ from typing_extensions import Annotated
 
 DEFAULT_TAG = "snake"
 FIFTEEN_MINUTES = 15 * 60
-FIVE_MINUTES = 5 * 60
 HEARTBEAT = "white_check_mark"
 LOG_FILE = Path(__file__).resolve().parent.parent / "notify.log"
 
@@ -92,7 +91,7 @@ def run():
             publish(f"{today}", priority=1, tag=HEARTBEAT)
             last_heartbeat = today
 
-        sleep(FIVE_MINUTES)
+        sleep(FIFTEEN_MINUTES)
 
 
 if __name__ == "__main__":
