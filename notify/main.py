@@ -14,7 +14,7 @@ from schedule.intervals import (
     EVERY_FIFTEEN_MINUTES,
     NINETY_SIX,
 )
-from scrapers.scrape import scrape_scorp
+from scrapers.scrape import Scraper, scrape_amazon_ebook, scrape_scorp
 from typing_extensions import Annotated
 
 DEFAULT_TAG = "snake"
@@ -32,8 +32,12 @@ logging.basicConfig(
 segments = itertools.cycle(NINETY_SIX)
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
+# scrapers = [(scrape_scorp, "hocho"), (scrape_amazon_ebook, "book")]
 scrapers = [
-    (scrape_scorp, "hocho"),
+    Scraper(
+        name="scorp", tag="hocho", segments=EVERY_FIFTEEN_MINUTES, scraper=scrape_scorp
+    ),
+    Scraper(name="ebook", tag="book", segments=DAILY, scraper=scrape_amazon_ebook),
 ]
 
 try:
@@ -75,23 +79,30 @@ def run():
     while True:
         segment = next(segments)
 
-        for scraper, tag in scrapers:
-            if (
-                (scraper.__name__ == "scrape_scorp")
-                and (segment in EVERY_FIFTEEN_MINUTES)
-                or (scraper.__name__ == "scrape_amazon_ebook")
-                and (segment in DAILY)
-            ):
-                if message := scraper():
-                    publish(message, tag=tag)
-
-                log.info(f" {segment} | {scraper.__name__} | {tag}")
+        for scraper in scrapers:
+            if segment in scraper.segments:
+                try:
+                    if message := scraper.scraper():
+                        publish(message, tag=scraper.tag)
+                    log.info(f"{segment:02} | {scraper} | {scraper.tag}")
+                except Exception as e:
+                    log.exception(f"{segment:02} | {scraper} | {e}")
+                    publish(
+                        f"{scraper} exception: {e}. Removing from call list.",
+                        5,
+                        "skull",
+                    )
+                    scrapers.remove(scraper)
 
         if (today := date.today()) > last_heartbeat:
             publish(f"{today}", priority=1, tag=HEARTBEAT)
             last_heartbeat = today
 
-        sleep(FIFTEEN_MINUTES)
+        if segment > 2:
+            break
+
+        sleep(10)
+        # sleep(FIFTEEN_MINUTES)
 
 
 if __name__ == "__main__":

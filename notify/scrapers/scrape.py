@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 from decimal import Decimal
+from typing import Callable
 
 import requests
 from bs4 import BeautifulSoup
@@ -7,6 +9,17 @@ EBOOK_MAX = Decimal("9.99")
 AVAILABLE = "Available"
 SOLD_OUT = "Sold Out"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+
+
+@dataclass(frozen=True)
+class Scraper:
+    name: str
+    tag: str
+    segments: set
+    scraper: Callable
+
+    def __str__(self) -> str:
+        return self.name
 
 
 def scrape_scorp():
@@ -39,7 +52,7 @@ def scrape_paper():
 
 
 def scrape_amazon_ebook():
-    url = "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
+    url = "https://www.amazo.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
     resp = requests.get(url, headers={"User-Agent": USER_AGENT})
     data = resp.text
 
