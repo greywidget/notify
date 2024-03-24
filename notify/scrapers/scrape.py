@@ -52,7 +52,7 @@ def scrape_paper() -> str:
 
 
 def scrape_amazon_ebook() -> str:
-    url = "https://www.ama.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
+    url = "https://www.amazon.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
     resp = requests.get(url, headers={"User-Agent": USER_AGENT})
     data = resp.text
 
