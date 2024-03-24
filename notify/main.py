@@ -79,16 +79,16 @@ def run():
 
         for scraper in scrapers:
             all_good = True
-            if segment in scraper.segments:
+            if scraper.active and segment in scraper.segments:
                 tag = scraper.tag
                 try:
                     message = scraper.scraper()
                 except Exception as e:
                     log.exception(f"{segment:02} | {scraper}", exc_info=e)
                     all_good = False
-                    message = f"{scraper} | Exception: {e}. Removing from call list."
+                    message = f"{scraper} | Exception: {e}. Disabling call."
                     tag = SKULL
-                    scrapers.remove(scraper)
+                    scraper.active = False
 
                 if message:
                     publish(message, tag=tag)
