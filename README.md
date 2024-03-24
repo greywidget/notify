@@ -1,67 +1,28 @@
 # Notify
 Checks various internet sites and notify me via [ntfy](https://ntfy.sh) of anything of interest.
 
-# On PlayWright
+# On dealing with Amazon
 When I first encountered a message from Amazon: *Looks like you are a program...*
-I foolishly assumed I needed to use PlayWright rather than Requests to access
-the site.
+I assumed I needed to use PlayWright rather than Requests to access
+the site. This caused me to create a [PlayWright Version](https://github.com/greywidget/notifypw)  
+Later, I modded *this* version and added a `USER_AGENT` to the request header. 
+This seemed to be working for a few days and then I started getting the error
+again. It appears to be intermittent and perhaps the PlayWright version is the
+best solution for now.  
+Unfortunately the Docker Image for the PlayWright version is about 1.22 GB
+compared to the Docker Image for this which is 110 MB. And if you install
+all PlayWright Browsers `playwright install --with-deps` instead of just one
+`playwright install --with-deps chromium`, the Docker Image is over 2 GB.
 
-I did get it all working, but installing PlayWright (including
-running `playwright install --with-deps`) meant that the Docker Image was 2GB.
+# I did make a package version
 
-Additionally, I'd foolishly created this as a package (see hatch-notify),
-which on reflection was not a great idea and gave me issues using 
-`python-decouple` that I couldn't resolve, and I ended up adding the TOPIC
-directly as an environmental variable.
+I did create a version of this as a package [Hatch Notify](https://github.com/greywidget/hatch-notify), but on reflection it was not a great idea and gave me issues using `python-decouple` that I couldn't resolve, and I ended up adding the TOPIC directly as an environmental variable.
 
-Here is what the config looked like at that time:
-### DockerFile
-```
-FROM ubuntu:22.04
-
-ENV VIRTUAL_ENV=/opt/venv
-ENV TOPIC=blah-blah-blah
-
-# Install required packages
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update \
-    && apt-get upgrade -y
-
-RUN apt-get install -y python3.10-venv
-
-# Verify Python installation
-RUN python3 --version
-
-WORKDIR /app
-
-COPY ./.env .
-COPY ./hatch_notify-0.0.1-py3-none-any.whl .
-
-RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-RUN python3 -m pip install --no-cache-dir hatch_notify-0.0.1-py3-none-any.whl
-
-RUN playwright install --with-deps
-
-# Define the command to run your Python script (replace with your script name)
-CMD ["notify", "run"]
-```
-
-### docker-compose.yml
-```
-services:
-  python:
-    build:
-      context: .
-    ports:
-      - "8000:8000"
-```
-On reflection, that `ports` is odd since I'd have thought it should be 80 if 
-anything. Also on the latest version I didn't expose any ports so I'm not sure 
-how `requests` can reach outside the container.
+# Docker
+I put the Docker files in this repo for reference, so they will get
+pulled down when you clone the repo. However they need to be in the
+install directory for when you run `docker-compose`.  
+Note that I had issues with `startup.sh` because my `Windows Git`
+changed the line endings (to CRLF) and `sh` on Synology doesn't
+like that.  
+My workaround was to edit the files on Synology with the `Text Edit` package to reset the line endings.

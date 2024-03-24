@@ -16,13 +16,13 @@ class Scraper:
     name: str
     tag: str
     segments: set
-    scraper: Callable
+    scraper: Callable[[], str]
 
     def __str__(self) -> str:
         return self.name
 
 
-def scrape_scorp():
+def scrape_scorp() -> str:
     url = "https://stoffercraft.com/products/spoon-scorp"
     resp = requests.get(url)
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -30,13 +30,13 @@ def scrape_scorp():
     option = form.find("option")
     status = SOLD_OUT if "disabled" in option.attrs.keys() else AVAILABLE
     if status == SOLD_OUT:
-        return
+        return ""
 
     price = form.find("span", id="productPrice").text
     return f"OG Scorp: {price}. {status}"
 
 
-def scrape_paper():
+def scrape_paper() -> str:
     url = "https://stoffercraft.com/products/honing-paper"
     resp = requests.get(url)
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -45,14 +45,14 @@ def scrape_paper():
     option = options[0]
     status = SOLD_OUT if "disabled" in option.attrs.keys() else AVAILABLE
     if status == SOLD_OUT:
-        return
+        return ""
 
     price = form.find("span", id="productPrice").text
     return f"Honing Paper: {price}. {status}"
 
 
-def scrape_amazon_ebook():
-    url = "https://www.amazo.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
+def scrape_amazon_ebook() -> str:
+    url = "https://www.ama.co.uk/Last-Devil-Die-Thursday-Murder-ebook/dp/B0BCY25BMY/"
     resp = requests.get(url, headers={"User-Agent": USER_AGENT})
     data = resp.text
 
@@ -67,3 +67,5 @@ def scrape_amazon_ebook():
 
     if Decimal(price.replace("£", "")) < EBOOK_MAX:
         return f"Richard Osmond ebook, The Last Devil to Die - Price Drop! {price} (down from £{EBOOK_MAX})"
+
+    return ""

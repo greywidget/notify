@@ -11,7 +11,7 @@ from decouple import config
 from keyring.errors import NoKeyringError
 from schedule.intervals import (
     DAILY,
-    EVERY_FIFTEEN_MINUTES,
+    HOURLY,
     NINETY_SIX,
 )
 from scrapers.scrape import Scraper, scrape_amazon_ebook, scrape_scorp
@@ -21,6 +21,7 @@ DEFAULT_TAG = "snake"
 FIFTEEN_MINUTES = 15 * 60
 HEARTBEAT = "white_check_mark"
 LOG_FILE = Path(__file__).resolve().parent.parent / "notify.log"
+SKULL = "skull"
 
 FMT = "%(asctime)s %(levelname)s %(message)s"
 logging.basicConfig(
@@ -32,11 +33,8 @@ logging.basicConfig(
 segments = itertools.cycle(NINETY_SIX)
 
 app = typer.Typer(add_completion=False, rich_markup_mode="markdown")
-# scrapers = [(scrape_scorp, "hocho"), (scrape_amazon_ebook, "book")]
 scrapers = [
-    Scraper(
-        name="scorp", tag="hocho", segments=EVERY_FIFTEEN_MINUTES, scraper=scrape_scorp
-    ),
+    Scraper(name="scorp", tag="hocho", segments=HOURLY, scraper=scrape_scorp),
     Scraper(name="ebook", tag="book", segments=DAILY, scraper=scrape_amazon_ebook),
 ]
 
@@ -80,29 +78,29 @@ def run():
         segment = next(segments)
 
         for scraper in scrapers:
+            all_good = True
             if segment in scraper.segments:
+                tag = scraper.tag
                 try:
-                    if message := scraper.scraper():
-                        publish(message, tag=scraper.tag)
-                    log.info(f"{segment:02} | {scraper} | {scraper.tag}")
+                    message = scraper.scraper()
                 except Exception as e:
-                    log.exception(f"{segment:02} | {scraper} | {e}")
-                    publish(
-                        f"{scraper} exception: {e}. Removing from call list.",
-                        5,
-                        "skull",
-                    )
+                    log.exception(f"{segment:02} | {scraper}", exc_info=e)
+                    all_good = False
+                    message = f"{scraper} | Exception: {e}. Removing from call list."
+                    tag = SKULL
                     scrapers.remove(scraper)
+
+                if message:
+                    publish(message, tag=tag)
+
+                if all_good:
+                    log.info(f"{segment:02} | {scraper} | {scraper.tag}")
 
         if (today := date.today()) > last_heartbeat:
             publish(f"{today}", priority=1, tag=HEARTBEAT)
             last_heartbeat = today
 
-        if segment > 2:
-            break
-
-        sleep(10)
-        # sleep(FIFTEEN_MINUTES)
+        sleep(FIFTEEN_MINUTES)
 
 
 if __name__ == "__main__":
