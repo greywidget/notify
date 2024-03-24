@@ -17,6 +17,7 @@ class Scraper:
     tag: str
     segments: set
     scraper: Callable[[], str]
+    active: bool = True
 
     def __str__(self) -> str:
         return self.name
